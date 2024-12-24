@@ -265,20 +265,30 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
 
   if (!avatarLocalPath) {
-    throw new apiError(404, "avatar file is missing");
+    throw new apiError(404, "Avatar file is missing");
   }
 
-  const avatar = await uploadFileToCloudinary(avatarLocalPath);
-
-  if (!avatar.url) {
-    throw new apiError(400, "Error while uploading on avatar");
+  // Find the user and get the old avatar URL
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new apiError(404, "User not found");
   }
 
-  const user = await User.findByIdAndUpdate(
+  const oldAvatarUrl = user.avatar;
+
+  // Upload new avatar to Cloudinary and delete the old avatar (if exists)
+  const newAvatar = await uploadFileToCloudinary(avatarLocalPath, oldAvatarUrl);
+
+  if (!newAvatar.url) {
+    throw new apiError(400, "Error while uploading avatar");
+  }
+
+  // Update the user with the new avatar URL
+  const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
     {
       $set: {
-        avatar: avatar.url,
+        avatar: newAvatar.url,
       },
     },
     {
@@ -288,7 +298,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new apiResponse(200, user, "avatar image updated successfully"));
+    .json(
+      new apiResponse(200, updatedUser, "Avatar image updated successfully")
+    );
 });
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
@@ -298,17 +310,28 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     throw new apiError(404, "coverImage file is missing");
   }
 
-  const coverImage = await uploadFileToCloudinary(coverImageLocalPath);
+  // Find the user and get the old coverImage URL
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new apiError(404, "User not found");
+  }
 
-  if (!coverImage.url) {
+  const oldCoverImageUrl = user.coverImage;
+
+  const newCcoverImage = await uploadFileToCloudinary(
+    coverImageLocalPath,
+    oldCoverImageUrl
+  );
+
+  if (!newCcoverImage.url) {
     throw new apiError(400, "Error while uploading on cover Image");
   }
 
-  const user = await User.findByIdAndUpdate(
+  const updateUser = await User.findByIdAndUpdate(
     req.user._id,
     {
       $set: {
-        coverImage: coverImage.url,
+        coverImage: newCcoverImage.url,
       },
     },
     {
@@ -318,7 +341,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new apiResponse(200, user, "cover image updated successfully"));
+    .json(new apiResponse(200, updateUser, "cover image updated successfully"));
 });
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {

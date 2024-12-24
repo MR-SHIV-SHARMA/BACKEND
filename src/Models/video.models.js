@@ -21,6 +21,7 @@ const videoSchema = new mongoose.Schema(
     },
     duration: {
       type: Number,
+      default: 0,
       required: true,
     },
     views: {
@@ -29,6 +30,7 @@ const videoSchema = new mongoose.Schema(
     },
     isPublished: {
       type: Boolean,
+      default: true,
       required: true,
     },
     owner: {
