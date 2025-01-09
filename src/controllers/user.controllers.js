@@ -318,12 +318,12 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
   const oldCoverImageUrl = user.coverImage;
 
-  const newCcoverImage = await uploadFileToCloudinary(
+  const newCoverImage = await uploadFileToCloudinary(
     coverImageLocalPath,
     oldCoverImageUrl
   );
 
-  if (!newCcoverImage.url) {
+  if (!newCoverImage.url) {
     throw new apiError(400, "Error while uploading on cover Image");
   }
 
@@ -331,7 +331,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     req.user._id,
     {
       $set: {
-        coverImage: newCcoverImage.url,
+        coverImage: newCoverImage.url,
       },
     },
     {
